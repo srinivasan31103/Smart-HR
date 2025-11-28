@@ -22,8 +22,16 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(true);
         } catch (error) {
           console.error('Auth initialization error:', error);
-          localStorage.removeItem('user');
-          localStorage.removeItem('accessToken');
+          // If API is unreachable but we have stored user, use it
+          // This allows the app to work while backend is being set up
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            setIsAuthenticated(true);
+          } catch {
+            localStorage.removeItem('user');
+            localStorage.removeItem('accessToken');
+          }
         }
       }
 
