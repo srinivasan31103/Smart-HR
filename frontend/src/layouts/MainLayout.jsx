@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Box, AppBar, Toolbar, Typography, IconButton, Avatar } from '@mui/material';
 import { Brightness4, Brightness7, Logout } from '@mui/icons-material';
 import { useAuth } from '../hooks/useAuth';
@@ -8,6 +8,12 @@ import { useTheme } from '../hooks/useTheme';
 export const MainLayout = () => {
   const { user, logout } = useAuth();
   const { mode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -29,7 +35,7 @@ export const MainLayout = () => {
             {user?.firstName} {user?.lastName}
           </Typography>
 
-          <IconButton color="inherit" onClick={logout}>
+          <IconButton color="inherit" onClick={handleLogout}>
             <Logout />
           </IconButton>
         </Toolbar>

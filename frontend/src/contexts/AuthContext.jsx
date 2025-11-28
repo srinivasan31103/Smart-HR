@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
           console.error('Auth initialization error:', error);
           // If API is unreachable but we have stored user, use it
-          // This allows the app to work while backend is being set up
           try {
             const parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
@@ -39,6 +38,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     initAuth();
+  }, []);
+
+  // Listen for auth-logout event from API interceptor
+  useEffect(() => {
+    const handleAuthLogout = () => {
+      setUser(null);
+      setIsAuthenticated(false);
+    };
+
+    window.addEventListener('auth-logout', handleAuthLogout);
+    return () => window.removeEventListener('auth-logout', handleAuthLogout);
   }, []);
 
   const login = useCallback(async (email, password) => {
