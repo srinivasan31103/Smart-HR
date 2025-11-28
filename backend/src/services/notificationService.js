@@ -5,7 +5,7 @@ const { NOTIFICATION_TYPES, NOTIFICATION_EVENTS } = require('../config/constants
  * Notification Service
  *
  * Pluggable notification service supporting multiple channels:
- * - Email (Mock / SMTP)
+ * - Email (Mock / Resend / SMTP)
  * - SMS (Mock / Twilio)
  * - WhatsApp (Mock / Twilio)
  * - In-App Notifications
@@ -15,6 +15,12 @@ class NotificationService {
   constructor() {
     this.emailProvider = process.env.EMAIL_PROVIDER || 'mock';
     this.smsProvider = process.env.SMS_PROVIDER || 'mock';
+
+    // Initialize Resend if configured
+    if (this.emailProvider === 'resend' && process.env.RESEND_API_KEY) {
+      const { Resend } = require('resend');
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+    }
   }
 
   /**
@@ -149,11 +155,14 @@ class NotificationService {
     const recipient = await notification.populate('recipient');
 
     if (this.emailProvider === 'mock') {
-      return await this._sendEmailMock(recipient.email, notification.title, notification.message);
+      return await this._sendEmailMock(recipient.recipient.email, notification.title, notification.message);
     }
 
-    // TODO: Implement real SMTP
-    return await this._sendEmailSMTP(recipient.email, notification.title, notification.message);
+    if (this.emailProvider === 'resend') {
+      return await this._sendEmailResend(recipient.recipient.email, notification.title, notification.message);
+    }
+
+    return await this._sendEmailSMTP(recipient.recipient.email, notification.title, notification.message);
   }
 
   async _sendEmailMock(to, subject, body) {
@@ -163,6 +172,33 @@ class NotificationService {
     console.log(`Body: ${body}`);
     console.log('---');
     return true;
+  }
+
+  async _sendEmailResend(to, subject, htmlBody) {
+    try {
+      const { data, error } = await this.resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'Smart HR <noreply@smarthr.com>',
+        to: [to],
+        subject: subject,
+        html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2 style="color: #333;">${subject}</h2>
+          <p style="color: #666; line-height: 1.6;">${htmlBody}</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #999; font-size: 12px;">This email was sent from Smart HR Management System</p>
+        </div>`,
+      });
+
+      if (error) {
+        console.error('Resend email error:', error);
+        return false;
+      }
+
+      console.log('📧 [RESEND EMAIL SENT]', data);
+      return true;
+    } catch (error) {
+      console.error('Resend email error:', error);
+      return false;
+    }
   }
 
   async _sendEmailSMTP(to, subject, htmlBody) {
@@ -199,11 +235,10 @@ class NotificationService {
     const recipient = await notification.populate('recipient');
 
     if (this.smsProvider === 'mock') {
-      return await this._sendSMSMock(recipient.phone, notification.message);
+      return await this._sendSMSMock(recipient.recipient.phone, notification.message);
     }
 
-    // TODO: Implement Twilio
-    return await this._sendSMSTwilio(recipient.phone, notification.message);
+    return await this._sendSMSTwilio(recipient.recipient.phone, notification.message);
   }
 
   async _sendSMSMock(to, message) {
@@ -241,11 +276,10 @@ class NotificationService {
     const recipient = await notification.populate('recipient');
 
     if (this.smsProvider === 'mock') {
-      return await this._sendWhatsAppMock(recipient.phone, notification.message);
+      return await this._sendWhatsAppMock(recipient.recipient.phone, notification.message);
     }
 
-    // TODO: Implement Twilio WhatsApp
-    return await this._sendWhatsAppTwilio(recipient.phone, notification.message);
+    return await this._sendWhatsAppTwilio(recipient.recipient.phone, notification.message);
   }
 
   async _sendWhatsAppMock(to, message) {
