@@ -222,34 +222,20 @@ Frontend will run on [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 👤 Test Accounts
+## 🌐 Live Demo
 
-To create test accounts, you can use the MongoDB shell or create a seed script.
+**Frontend:** <https://smart-hr-snowy.vercel.app>
+**Backend API:** <https://smart-hr-pbxi.onrender.com>
 
-### Sample Admin Account (Manual Creation)
+### Demo Login Credentials
 
-```javascript
-// Run this in MongoDB shell or use a seed script
-db.employees.insertOne({
-  email: "admin@smarthr.com",
-  password: "$2a$10$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL", // "admin123" hashed
-  employeeId: "EMP001",
-  firstName: "System",
-  lastName: "Admin",
-  role: "SUPER_ADMIN",
-  status: "ACTIVE",
-  isActive: true,
-  company: ObjectId("..."), // Create company first
-  department: ObjectId("..."),
-  designation: ObjectId("..."),
-  dateOfJoining: new Date(),
-  leaveBalance: {},
-});
-```
+| Role | Email | Password |
+|------|-------|----------|
+| **Admin** | `admin@acme.com` | `password123` |
+| **Manager** | `manager@acme.com` | `password123` |
+| **Employee** | `john@acme.com` | `password123` |
 
-**Default Credentials:**
-- Email: `admin@smarthr.com`
-- Password: `admin123`
+> **Note:** The demo is hosted on free tier services. The backend may take 30-60 seconds to wake up on first request.
 
 ---
 
