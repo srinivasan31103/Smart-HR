@@ -33,8 +33,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If 401 and not already retried, try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Skip token refresh for login, register, and refresh endpoints
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+                          originalRequest.url?.includes('/auth/register') ||
+                          originalRequest.url?.includes('/auth/refresh');
+
+    // If 401, not auth endpoint, not already retried, and we have a token
+    const token = localStorage.getItem('accessToken');
+    if (error.response?.status === 401 &&
+        !isAuthEndpoint &&
+        !originalRequest._retry &&
+        token) {
       originalRequest._retry = true;
 
       try {
@@ -53,7 +62,6 @@ api.interceptors.response.use(
         // Refresh failed, clear storage and dispatch event
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
-        // Dispatch custom event for auth failure
         window.dispatchEvent(new CustomEvent('auth-logout'));
         return Promise.reject(refreshError);
       }
