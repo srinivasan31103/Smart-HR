@@ -93,6 +93,51 @@ router.get('/seed', async (req, res) => {
 });
 
 /**
+ * Add Manager Route (one-time use)
+ */
+router.get('/add-manager', async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const Employee = require('../models/Employee');
+    const Company = require('../models/Company');
+    const Department = require('../models/Department');
+    const Designation = require('../models/Designation');
+    const Shift = require('../models/Shift');
+
+    const existing = await Employee.findOne({ email: 'manager@acme.com' });
+    if (existing) {
+      return res.json({ success: true, message: 'Manager already exists' });
+    }
+
+    const company = await Company.findOne({ code: 'ACME' });
+    const dept = await Department.findOne({ code: 'ENG' });
+    const shift = await Shift.findOne({ code: 'GEN' });
+
+    const mgrDesig = await Designation.create({
+      title: 'Manager', code: 'MGR', company: company._id, level: 2, isActive: true
+    });
+
+    const pwd = await bcrypt.hash('password123', 10);
+
+    await Employee.create({
+      email: 'manager@acme.com', password: pwd, employeeId: 'ACME003',
+      firstName: 'Bob', lastName: 'Smith', dateOfBirth: new Date('1987-08-10'),
+      gender: 'MALE', phone: '+1-234-567-8903', role: 'MANAGER', status: 'ACTIVE',
+      company: company._id, department: dept._id, designation: mgrDesig._id,
+      dateOfJoining: new Date('2020-06-01'), employmentType: 'FULL_TIME',
+      shift: shift._id, workLocation: 'OFFICE', isActive: true,
+    });
+
+    res.json({
+      success: true, message: 'Manager added!',
+      login: { email: 'manager@acme.com', password: 'password123' },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * API Version Info
  */
 router.get('/', (req, res) => {
