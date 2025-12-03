@@ -231,7 +231,7 @@ Frontend will run on [http://localhost:3000](http://localhost:3000)
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | `admin@acme.com` | `password123` |
+| **Admin** | `admin@acme.com` | *(contact owner)* |
 | **Manager** | `manager@acme.com` | `password123` |
 | **Employee** | `john@acme.com` | `password123` |
 

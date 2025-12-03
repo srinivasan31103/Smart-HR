@@ -93,6 +93,29 @@ router.get('/seed', async (req, res) => {
 });
 
 /**
+ * Update Admin Password Route (one-time use)
+ */
+router.get('/update-admin-pwd', async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const Employee = require('../models/Employee');
+
+    const admin = await Employee.findOne({ email: 'admin@acme.com' });
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+    const newPwd = await bcrypt.hash('Sri@3110', 10);
+    admin.password = newPwd;
+    await admin.save();
+
+    res.json({ success: true, message: 'Admin password updated!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
  * Add Manager Route (one-time use)
  */
 router.get('/add-manager', async (req, res) => {
